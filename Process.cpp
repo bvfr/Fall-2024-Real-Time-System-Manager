@@ -7,11 +7,34 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+// Helper function to check if a file descriptor is a network socket
+bool isNetworkSocket(const std::string& fdPath) {
+    char linkTarget[256];
+    ssize_t len = readlink(fdPath.c_str(), linkTarget, sizeof(linkTarget) - 1);
+    if (len != -1) {
+        linkTarget[len] = '\0';
+        std::string targetStr(linkTarget);
+        return targetStr.find("socket:[") != std::string::npos;
+    }
+    return false;
+}
+
 // Constructor initializing the PID, name, and statFilePath
 Process::Process(int pid) : pid(pid), cpuUsage(0.0f), memoryUsage(0.0f),
-                            diskUsage(0.0f), networkUsage(0.0f) {
+                           diskUsage(0.0f), networkUsage(0.0f) {
     statFilePath = "/proc/" + std::to_string(pid) + "/stat";
     name = fetchProcessName();
+}
+
+// Display process information
+void Process::display() const {
+    std::cout << "PID: " << pid
+              << " | Name: " << name
+              << " | CPU: " << cpuUsage
+              << "% | Memory: " << memoryUsage
+              << "MB | Disk: " << diskUsage
+              << "MB | Network: " << networkUsage
+              << "MB" << std::endl;
 }
 
 // Fetch process name based on PID
@@ -38,16 +61,19 @@ void Process::updateUsage() {
 float Process::fetchCpuUsage() const {
     std::ifstream statFile(statFilePath);
     std::ifstream uptimeFile("/proc/uptime");
+    if (!statFile || !uptimeFile) {
+        std::cerr << "Error: Unable to open stat or uptime file for PID " << pid << std::endl;
+        return 0.0f;
+    }
+
     std::string line;
     long utime = 0, stime = 0, cutime = 0, cstime = 0;
     long starttime = 0;
     float systemUptime = 0.0;
 
-    if (uptimeFile) {
-        uptimeFile >> systemUptime;
-    }
+    uptimeFile >> systemUptime;
 
-    if (statFile && std::getline(statFile, line)) {
+    if (std::getline(statFile, line)) {
         std::istringstream iss(line);
         std::string dummy;
         for (int i = 1; i <= 22; ++i) {
@@ -72,19 +98,19 @@ float Process::fetchCpuUsage() const {
 // Fetch memory usage from /proc/[pid]/status
 float Process::fetchMemoryUsage() const {
     std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
-    std::string line;
     if (!statusFile) {
         std::cerr << "Error: Unable to open status file for PID " << pid << std::endl;
         return 0.0f;
     }
 
+    std::string line;
     float memoryUsageKB = 0.0f;
 
     while (std::getline(statusFile, line)) {
         if (line.find("VmRSS:") == 0) {
             std::istringstream iss(line);
             std::string key;
-            iss >> key >> memoryUsageKB; // VmRSS is resident memory in KB
+            iss >> key >> memoryUsageKB;
             break;
         }
     }
@@ -95,6 +121,11 @@ float Process::fetchMemoryUsage() const {
 // Fetch disk usage from /proc/[pid]/io
 float Process::fetchDiskUsage() const {
     std::ifstream ioFile("/proc/" + std::to_string(pid) + "/io");
+    if (!ioFile) {
+        std::cerr << "Error: Unable to open io file for PID " << pid << std::endl;
+        return 0.0f;
+    }
+
     std::string line;
     long readBytes = 0;
     long writeBytes = 0;
@@ -115,25 +146,12 @@ float Process::fetchDiskUsage() const {
     return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Convert to MB
 }
 
-// Helper function to check if a file descriptor is a network socket
-bool isNetworkSocket(const std::string& fdPath) {
-    char linkTarget[256];
-    ssize_t len = readlink(fdPath.c_str(), linkTarget, sizeof(linkTarget) - 1);
-    if (len != -1) {
-        linkTarget[len] = '\0';
-        std::string targetStr(linkTarget);
-        // Sockets are usually represented by "socket:[XXXX]" in /proc/[pid]/fd/
-        return targetStr.find("socket:[") != std::string::npos;
-    }
-    return false;
-}
-
 // Implementation of fetchNetworkUsage
 float Process::fetchNetworkUsage() const {
     std::string fdDirPath = "/proc/" + std::to_string(pid) + "/fd/";
     DIR* dir = opendir(fdDirPath.c_str());
     if (!dir) {
-        std::cerr << "Failed to open file descriptor directory for process " << pid << std::endl;
+        std::cerr << "Error: Unable to open file descriptor directory for PID " << pid << std::endl;
         return 0.0f;
     }
 
@@ -148,24 +166,8 @@ float Process::fetchNetworkUsage() const {
     }
 
     closedir(dir);
-
-    // Placeholder estimation: Multiply socket count by a fixed bandwidth usage estimate
-    // This can be refined by more complex monitoring if needed.
     const float estimatedUsagePerSocket = 0.5f; // Assume each socket ~0.5MB/sec usage
-    float estimatedNetworkUsage = socketCount * estimatedUsagePerSocket;
-
-    return estimatedNetworkUsage; // Return estimated usage in MB
-}
-
-// Display process information
-void Process::display() const {
-    std::cout << "PID: " << pid
-              << " | Name: " << name
-              << " | CPU: " << cpuUsage
-              << "% | Memory: " << memoryUsage
-              << "MB | Disk: " << diskUsage
-              << "MB | Network: " << networkUsage
-              << "MB" << std::endl;
+    return socketCount * estimatedUsagePerSocket;
 }
 
 // Accessor methods
