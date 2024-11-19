@@ -8,26 +8,18 @@
 class ProcessManager {
 public:
     ProcessManager();
+    
+    // Get all processes
     const std::vector<Process>& getProcesses() const;
-
+    
+    // Process management methods
     void loadProcesses();
-    void refreshProcesses();
-    void displayProcesses() const;
     void sortProcesses(const std::string& criteria);
-    void showNextPage();
-    void showPreviousPage();
 
 private:
     std::vector<Process> processes;
     size_t currentPage;
-    const size_t pageSize = 10;
-
-    // Helper methods
-    void sortByCpuUsage();
-    void sortByMemoryUsage();
-    void sortByDiskUsage();
-    void sortByNetworkUsage();
+    static const size_t pageSize = 10;
 };
 
 #endif // PROCESS_MANAGER_H
-
