@@ -18,9 +18,11 @@ Process::Process(int pid) : pid(pid), cpuUsage(0.0f), memoryUsage(0.0f),
 std::string Process::fetchProcessName() const {
     std::ifstream cmdFile("/proc/" + std::to_string(pid) + "/comm");
     std::string processName;
-    if (cmdFile) {
-        std::getline(cmdFile, processName);
+    if (!cmdFile) {
+        std::cerr << "Error: Unable to open comm file for PID " << pid << std::endl;
+        return "Unknown";
     }
+    std::getline(cmdFile, processName);
     return processName.empty() ? "Unknown" : processName;
 }
 
@@ -71,6 +73,11 @@ float Process::fetchCpuUsage() const {
 float Process::fetchMemoryUsage() const {
     std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
     std::string line;
+    if (!statusFile) {
+        std::cerr << "Error: Unable to open status file for PID " << pid << std::endl;
+        return 0.0f;
+    }
+
     float memoryUsageKB = 0.0f;
 
     while (std::getline(statusFile, line)) {
@@ -150,6 +157,17 @@ float Process::fetchNetworkUsage() const {
     return estimatedNetworkUsage; // Return estimated usage in MB
 }
 
+// Display process information
+void Process::display() const {
+    std::cout << "PID: " << pid
+              << " | Name: " << name
+              << " | CPU: " << cpuUsage
+              << "% | Memory: " << memoryUsage
+              << "MB | Disk: " << diskUsage
+              << "MB | Network: " << networkUsage
+              << "MB" << std::endl;
+}
+
 // Accessor methods
 int Process::getPid() const { return pid; }
 std::string Process::getName() const { return name; }
@@ -157,4 +175,3 @@ float Process::getCpuUsage() const { return cpuUsage; }
 float Process::getMemoryUsage() const { return memoryUsage; }
 float Process::getDiskUsage() const { return diskUsage; }
 float Process::getNetworkUsage() const { return networkUsage; }
-

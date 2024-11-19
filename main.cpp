@@ -5,22 +5,21 @@
 #include "ProcessManager.h"
 
 void displayProcesses(const std::vector<Process>& processes, int startIndex = 0, int count = 10) {
-    // Display a set number of processes (default is 10) starting from startIndex
     int endIndex = std::min(startIndex + count, static_cast<int>(processes.size()));
     for (int i = startIndex; i < endIndex; ++i) {
-        std::cout << "PID: " << processes[i].getPid()
-                  << " | Name: " << processes[i].getProcessName()
-                  << " | CPU: " << processes[i].getCpuUsage()
-                  << "% | Memory: " << processes[i].getMemoryUsage()
-                  << "MB | Disk: " << processes[i].getDiskUsage()
-                  << "MB | Network: " << processes[i].getNetworkUsage()
-                  << "MB" << std::endl;
+        processes[i].display();
     }
 }
 
 int main() {
     ProcessManager manager;
-    manager.loadProcesses(); // Load the initial list of processes from the system
+    
+    try {
+        manager.loadProcesses();
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading processes: " << e.what() << std::endl;
+        return 1;
+    }
 
     int choice = -1;
     bool quit = false;
@@ -31,59 +30,38 @@ int main() {
         std::cout << "2. Display processes (sorted by Memory usage)\n";
         std::cout << "3. Display processes (sorted by Disk usage)\n";
         std::cout << "4. Display processes (sorted by Network usage)\n";
-        std::cout << "5. Find process by PID\n";
-        std::cout << "6. Find processes by name\n";
+        std::cout << "5. Refresh process list\n";
         std::cout << "0. Quit\n";
         std::cout << "Choice: ";
-        std::cin >> choice;
+        
+        if (!(std::cin >> choice)) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter a number." << std::endl;
+            continue;
+        }
 
         switch (choice) {
             case 1:
-                manager.sortByCpuUsage();
+                manager.sortProcesses("cpu");
                 displayProcesses(manager.getProcesses());
                 break;
             case 2:
-                manager.sortByMemoryUsage();
+                manager.sortProcesses("memory");
                 displayProcesses(manager.getProcesses());
                 break;
             case 3:
-                manager.sortByDiskUsage();
+                manager.sortProcesses("disk");
                 displayProcesses(manager.getProcesses());
                 break;
             case 4:
-                manager.sortByNetworkUsage();
+                manager.sortProcesses("network");
                 displayProcesses(manager.getProcesses());
                 break;
-            case 5: {
-                int pid;
-                std::cout << "Enter PID: ";
-                std::cin >> pid;
-                Process* process = manager.findProcessByPid(pid);
-                if (process) {
-                    std::cout << "Process found: PID: " << process->getPid()
-                              << " | Name: " << process->getProcessName()
-                              << " | CPU: " << process->getCpuUsage()
-                              << "% | Memory: " << process->getMemoryUsage()
-                              << "MB | Disk: " << process->getDiskUsage()
-                              << "MB | Network: " << process->getNetworkUsage()
-                              << "MB" << std::endl;
-                } else {
-                    std::cout << "No process found with PID " << pid << std::endl;
-                }
+            case 5:
+                manager.loadProcesses();
+                std::cout << "Process list refreshed." << std::endl;
                 break;
-            }
-            case 6: {
-                std::string name;
-                std::cout << "Enter process name: ";
-                std::cin >> name;
-                auto processes = manager.findProcessesByName(name);
-                if (!processes.empty()) {
-                    displayProcesses(processes);
-                } else {
-                    std::cout << "No processes found with name " << name << std::endl;
-                }
-                break;
-            }
             case 0:
                 quit = true;
                 break;
@@ -94,5 +72,6 @@ int main() {
     }
 
     return 0;
+}
 }
 

@@ -13,17 +13,25 @@ ProcessManager::ProcessManager() : currentPage(0) {
 void ProcessManager::loadProcesses() {
     processes.clear();
     DIR* procDir = opendir("/proc");
-    struct dirent* entry;
     
-    if (procDir) {
-        while ((entry = readdir(procDir)) != nullptr) {
-            if (isdigit(entry->d_name[0])) {
+    if (!procDir) {
+        std::cerr << "Error: Unable to open /proc directory" << std::endl;
+        return;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(procDir)) != nullptr) {
+        if (isdigit(entry->d_name[0])) {
+            try {
                 int pid = std::stoi(entry->d_name);
                 processes.emplace_back(pid);
+            } catch (const std::exception& e) {
+                std::cerr << "Error processing PID " << entry->d_name << ": " << e.what() << std::endl;
+                continue;
             }
         }
-        closedir(procDir);
     }
+    closedir(procDir);
 }
 
 // Refresh all processes (update resource usage)
@@ -70,6 +78,11 @@ void ProcessManager::showPreviousPage() {
     }
 }
 
+// Get all processes
+const std::vector<Process>& ProcessManager::getProcesses() const {
+    return processes;
+}
+
 // Sorting methods
 void ProcessManager::sortByCpuUsage() {
     std::sort(processes.begin(), processes.end(),
@@ -98,4 +111,3 @@ void ProcessManager::sortByNetworkUsage() {
                   return a.getNetworkUsage() > b.getNetworkUsage();
               });
 }
-

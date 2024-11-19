@@ -31,7 +31,6 @@ private:
     float memoryUsage;
     float diskUsage;
     float networkUsage;
-    bool isNetworkSocket(const std::string& fdPath);
 
     // Path to the stat file for the process
     std::string statFilePath;
@@ -49,4 +48,3 @@ private:
 };
 
 #endif // PROCESS_H
-
