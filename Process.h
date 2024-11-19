@@ -41,10 +41,6 @@ private:
     float fetchMemoryUsage() const;
     float fetchDiskUsage() const;
     float fetchNetworkUsage() const;
-
-    // Private helper methods to parse data
-    float fetchProcessTime(const std::string& statFilePath) const;
-    float fetchSystemUptime() const;
 };
 
 #endif // PROCESS_H
