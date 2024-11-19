@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm> // For sorting
+#include <algorithm>
+#include <limits>
 #include "ProcessManager.h"
 
 void displayProcesses(const std::vector<Process>& processes, int startIndex = 0, int count = 10) {
@@ -73,5 +74,3 @@ int main() {
 
     return 0;
 }
-}
-
