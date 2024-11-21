@@ -7,11 +7,21 @@
 #include <thread>
 #include "ProcessManager.h"
 
-void displayProcesses(const std::vector<Process>& processes, int startIndex = 0, int count = 10) {
-    int endIndex = std::min(startIndex + count, static_cast<int>(processes.size()));
-    for (int i = startIndex; i < endIndex; ++i) {
-        processes[i].display();
+void displayProcesses(const std::vector<Process>& processes) {
+    for (const auto& process : processes) {
+        process.display();
     }
+}
+
+void displayInstructions() {
+    std::cout << "\nInstructions:\n";
+    std::cout << "1. Sort by CPU usage\n";
+    std::cout << "2. Sort by Memory usage\n";
+    std::cout << "3. Sort by Disk usage\n";
+    std::cout << "4. Sort by Network usage\n";
+    std::cout << "5. Refresh process list\n";
+    std::cout << "0. Quit\n";
+    std::cout << "Enter your choice: ";
 }
 
 int main() {
@@ -42,10 +52,14 @@ int main() {
             case 4:
                 manager.sortProcesses("network");
                 break;
+            case 5:
+                manager.loadProcesses();
+                break;
             default:
                 break;
         }
         displayProcesses(manager.getProcesses());
+        displayInstructions();
 
         // Wait for 1 second
         std::this_thread::sleep_for(std::chrono::seconds(1));
