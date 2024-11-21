@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <dirent.h>
 #include <cstdlib>
+#include <fstream>
 
 // Constructor: Initialize and load processes
 ProcessManager::ProcessManager() : currentPage(0) {
