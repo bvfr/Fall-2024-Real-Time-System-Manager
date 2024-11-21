@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <chrono>
+#include <thread>
 #include "ProcessManager.h"
 
 void displayProcesses(const std::vector<Process>& processes, int startIndex = 0, int count = 10) {
@@ -14,7 +16,7 @@ void displayProcesses(const std::vector<Process>& processes, int startIndex = 0,
 
 int main() {
     ProcessManager manager;
-    
+
     try {
         manager.loadProcesses();
     } catch (const std::exception& e) {
@@ -22,53 +24,38 @@ int main() {
         return 1;
     }
 
-    int choice = -1;
+    int choice = 1; // Default to CPU usage sorting
     bool quit = false;
 
     while (!quit) {
-        std::cout << "\nSelect an option:\n";
-        std::cout << "1. Display processes (sorted by CPU usage)\n";
-        std::cout << "2. Display processes (sorted by Memory usage)\n";
-        std::cout << "3. Display processes (sorted by Disk usage)\n";
-        std::cout << "4. Display processes (sorted by Network usage)\n";
-        std::cout << "5. Refresh process list\n";
-        std::cout << "0. Quit\n";
-        std::cout << "Choice: ";
-        
-        if (!(std::cin >> choice)) {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Invalid input. Please enter a number." << std::endl;
-            continue;
-        }
-
+        // Sort and display processes based on the current choice
         switch (choice) {
             case 1:
                 manager.sortProcesses("cpu");
-                displayProcesses(manager.getProcesses());
                 break;
             case 2:
                 manager.sortProcesses("memory");
-                displayProcesses(manager.getProcesses());
                 break;
             case 3:
                 manager.sortProcesses("disk");
-                displayProcesses(manager.getProcesses());
                 break;
             case 4:
                 manager.sortProcesses("network");
-                displayProcesses(manager.getProcesses());
-                break;
-            case 5:
-                manager.loadProcesses();
-                std::cout << "Process list refreshed." << std::endl;
-                break;
-            case 0:
-                quit = true;
                 break;
             default:
-                std::cout << "Invalid option. Please try again." << std::endl;
                 break;
+        }
+        displayProcesses(manager.getProcesses());
+
+        // Wait for 1 second
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check for user input
+        if (std::cin.rdbuf()->in_avail() > 0) {
+            std::cin >> choice;
+            if (choice == 0) {
+                quit = true;
+            }
         }
     }
 
