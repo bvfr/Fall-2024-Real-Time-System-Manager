@@ -41,6 +41,11 @@ private:
     float fetchMemoryUsage() const;
     float fetchDiskUsage() const;
     float fetchNetworkUsage() const;
+
+    // Methods to fetch total system usage
+    float fetchTotalMemory() const;
+    float fetchTotalDisk() const;
+    float fetchTotalNetwork() const;
 };
 
 #endif // PROCESS_H
