@@ -19,7 +19,6 @@ public:
 private:
     std::vector<Process> processes;
     size_t currentPage;
-    static const size_t pageSize = 10;
 };
 
 #endif // PROCESS_MANAGER_H
