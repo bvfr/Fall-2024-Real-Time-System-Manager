@@ -41,3 +41,27 @@ void ProcessManager::loadProcesses() {
         process.updateUsage();
     }
 }
+
+void ProcessManager::sortProcesses(const std::string& criteria) {
+    if (criteria == "cpu") {
+        std::sort(processes.begin(), processes.end(),
+                 [](const Process& a, const Process& b) {
+                     return a.getCpuUsage() > b.getCpuUsage();
+                 });
+    } else if (criteria == "memory") {
+        std::sort(processes.begin(), processes.end(),
+                 [](const Process& a, const Process& b) {
+                     return a.getMemoryUsage() > b.getMemoryUsage();
+                 });
+    } else if (criteria == "disk") {
+        std::sort(processes.begin(), processes.end(),
+                 [](const Process& a, const Process& b) {
+                     return a.getDiskUsage() > b.getDiskUsage();
+                 });
+    } else if (criteria == "network") {
+        std::sort(processes.begin(), processes.end(),
+                 [](const Process& a, const Process& b) {
+                     return a.getNetworkUsage() > b.getNetworkUsage();
+                 });
+    }
+}
