@@ -18,7 +18,7 @@ const std::vector<Process>& ProcessManager::getProcesses() const {
 void ProcessManager::loadProcesses() {
     processes.clear();
     DIR* procDir = opendir("/proc");
-    
+
     if (!procDir) {
         std::cerr << "Error: Unable to open /proc directory" << std::endl;
         return;
@@ -29,7 +29,23 @@ void ProcessManager::loadProcesses() {
         if (isdigit(entry->d_name[0])) {
             try {
                 int pid = std::stoi(entry->d_name);
-                processes.emplace_back(pid);
+                
+                // Check if the process is currently running
+                std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
+                std::string line;
+                bool isRunning = false;
+                while (std::getline(statusFile, line)) {
+                    if (line.find("State:") == 0) {
+                        if (line.find("R") != std::string::npos) { // R indicates running state
+                            isRunning = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (isRunning) {
+                    processes.emplace_back(pid);
+                }
             } catch (const std::exception& e) {
                 std::cerr << "Error processing PID " << entry->d_name << ": " << e.what() << std::endl;
                 continue;
@@ -37,8 +53,7 @@ void ProcessManager::loadProcesses() {
         }
     }
     closedir(procDir);
-    
-    // Update resource usage for all processes
+
     for (auto& process : processes) {
         process.updateUsage();
     }
