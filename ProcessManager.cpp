@@ -29,23 +29,7 @@ void ProcessManager::loadProcesses() {
         if (isdigit(entry->d_name[0])) {
             try {
                 int pid = std::stoi(entry->d_name);
-                
-                // Check if the process is currently running
-                std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
-                std::string line;
-                bool isRunning = false;
-                while (std::getline(statusFile, line)) {
-                    if (line.find("State:") == 0) {
-                        if (line.find("R") != std::string::npos) { // R indicates running state
-                            isRunning = true;
-                        }
-                        break;
-                    }
-                }
-
-                if (isRunning) {
-                    processes.emplace_back(pid);
-                }
+                processes.emplace_back(pid);
             } catch (const std::exception& e) {
                 std::cerr << "Error processing PID " << entry->d_name << ": " << e.what() << std::endl;
                 continue;
