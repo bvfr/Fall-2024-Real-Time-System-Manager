@@ -32,9 +32,9 @@ void Process::display() const {
               << " | Name: " << name
               << " | CPU: " << cpuUsage
               << "% | Memory: " << memoryUsage
-              << "MB | Disk: " << diskUsage
-              << "MB | Network: " << networkUsage
-              << "MB" << std::endl;
+              << "% | Disk: " << diskUsage
+              << "% | Network: " << networkUsage
+              << "%" << std::endl;
 }
 
 // Fetch process name based on PID
@@ -42,7 +42,6 @@ std::string Process::fetchProcessName() const {
     std::ifstream cmdFile("/proc/" + std::to_string(pid) + "/comm");
     std::string processName;
     if (!cmdFile) {
-        std::cerr << "Error: Unable to open comm file for PID " << pid << std::endl;
         return "Unknown";
     }
     std::getline(cmdFile, processName);
@@ -62,7 +61,6 @@ float Process::fetchCpuUsage() const {
     std::ifstream statFile(statFilePath);
     std::ifstream uptimeFile("/proc/uptime");
     if (!statFile || !uptimeFile) {
-        std::cerr << "Error: Unable to open stat or uptime file for PID " << pid << std::endl;
         return 0.0f;
     }
 
@@ -95,11 +93,32 @@ float Process::fetchCpuUsage() const {
     return 0.0f;
 }
 
+// Fetch total system memory
+float Process::fetchTotalMemory() const {
+    std::ifstream meminfoFile("/proc/meminfo");
+    if (!meminfoFile) {
+        return 1.0f; // Avoid division by zero
+    }
+
+    std::string line;
+    float totalMemoryKB = 0.0f;
+
+    while (std::getline(meminfoFile, line)) {
+        if (line.find("MemTotal:") == 0) {
+            std::istringstream iss(line);
+            std::string key;
+            iss >> key >> totalMemoryKB;
+            break;
+        }
+    }
+
+    return totalMemoryKB / 1024.0f; // Convert to MB
+}
+
 // Fetch memory usage from /proc/[pid]/status
 float Process::fetchMemoryUsage() const {
     std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
     if (!statusFile) {
-        std::cerr << "Error: Unable to open status file for PID " << pid << std::endl;
         return 0.0f;
     }
 
@@ -115,14 +134,21 @@ float Process::fetchMemoryUsage() const {
         }
     }
 
-    return memoryUsageKB / 1024.0f; // Convert to MB
+    float totalMemory = fetchTotalMemory();
+    return (memoryUsageKB / 1024.0f) / totalMemory * 100.0f; // Convert to percentage
+}
+
+// Fetch total system disk usage
+float Process::fetchTotalDisk() const {
+    // Implement logic to fetch total disk usage
+    // This is a placeholder and should be replaced with actual logic
+    return 1024.0f; // Placeholder value in MB
 }
 
 // Fetch disk usage from /proc/[pid]/io
 float Process::fetchDiskUsage() const {
     std::ifstream ioFile("/proc/" + std::to_string(pid) + "/io");
     if (!ioFile) {
-        std::cerr << "Error: Unable to open io file for PID " << pid << std::endl;
         return 0.0f;
     }
 
@@ -138,20 +164,27 @@ float Process::fetchDiskUsage() const {
         } else if (line.find("write_bytes:") == 0) {
             std::istringstream iss(line);
             std::string key;
-            iss >> key >> writeBytes;
+            iss >> writeBytes;
         }
     }
 
     long totalBytes = readBytes + writeBytes;
-    return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Convert to MB
+    float totalDisk = fetchTotalDisk();
+    return (static_cast<float>(totalBytes) / (1024.0f * 1024.0f)) / totalDisk * 100.0f; // Convert to percentage
 }
 
-// Implementation of fetchNetworkUsage
+// Fetch total system network usage
+float Process::fetchTotalNetwork() const {
+    // Implement logic to fetch total network usage
+    // This is a placeholder and should be replaced with actual logic
+    return 1000.0f; // Placeholder value in MB/sec
+}
+
+// Fetch network usage from file descriptors
 float Process::fetchNetworkUsage() const {
     std::string fdDirPath = "/proc/" + std::to_string(pid) + "/fd/";
     DIR* dir = opendir(fdDirPath.c_str());
     if (!dir) {
-        std::cerr << "Error: Unable to open file descriptor directory for PID " << pid << std::endl;
         return 0.0f;
     }
 
@@ -167,7 +200,8 @@ float Process::fetchNetworkUsage() const {
 
     closedir(dir);
     const float estimatedUsagePerSocket = 0.5f; // Assume each socket ~0.5MB/sec usage
-    return socketCount * estimatedUsagePerSocket;
+    float totalNetwork = fetchTotalNetwork();
+    return (socketCount * estimatedUsagePerSocket) / totalNetwork * 100.0f; // Convert to percentage
 }
 
 // Accessor methods
