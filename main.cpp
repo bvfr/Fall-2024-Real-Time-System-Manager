@@ -36,6 +36,7 @@ int main() {
 
     int choice = 1; // Default to CPU usage sorting
     bool quit = false;
+    std::string input;
 
     while (!quit) {
         // Sort and display processes based on the current choice
@@ -61,14 +62,17 @@ int main() {
         displayProcesses(manager.getProcesses());
         displayInstructions();
 
-        // Wait for 1 second
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        // Wait for 1.5 seconds
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
         // Check for user input
         if (std::cin.rdbuf()->in_avail() > 0) {
-            std::cin >> choice;
-            if (choice == 0) {
-                quit = true;
+            std::getline(std::cin, input);
+            if (!input.empty()) {
+                choice = std::stoi(input);
+                if (choice == 0) {
+                    quit = true;
+                }
             }
         }
     }
