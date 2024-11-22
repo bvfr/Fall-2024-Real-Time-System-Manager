@@ -7,6 +7,7 @@
 class Process {
 public:
     Process(int pid);
+    Process(); // Default constructor
 
     // Display process information
     void display() const;
@@ -25,7 +26,7 @@ public:
 private:
     int pid;
     std::string name;
-    
+
     // Resource usage metrics
     float cpuUsage;
     float memoryUsage;
