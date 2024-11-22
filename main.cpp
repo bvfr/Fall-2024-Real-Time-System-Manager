@@ -13,18 +13,7 @@ void displayProcesses(const std::vector<Process>& processes) {
     }
 }
 
-void displayInstructions() {
-    std::cout << "\nInstructions:\n";
-    std::cout << "1. Sort by CPU usage\n";
-    std::cout << "2. Sort by Memory usage\n";
-    std::cout << "3. Sort by Disk usage\n";
-    std::cout << "4. Sort by Network usage\n";
-    std::cout << "5. Refresh process list\n";
-    std::cout << "0. Quit\n";
-    std::cout << "Enter your choice: ";
-}
-
-int main() {
+int main(int argc, char* argv[]) {
     ProcessManager manager;
 
     try {
@@ -34,48 +23,22 @@ int main() {
         return 1;
     }
 
-    int choice = 1; // Default to CPU usage sorting
-    bool quit = false;
-    std::string input;
+    std::string flag = (argc > 1) ? argv[1] : "-c"; // Default to CPU usage sorting
 
-    while (!quit) {
-        // Sort and display processes based on the current choice
-        switch (choice) {
-            case 1:
-                manager.sortProcesses("cpu");
-                break;
-            case 2:
-                manager.sortProcesses("memory");
-                break;
-            case 3:
-                manager.sortProcesses("disk");
-                break;
-            case 4:
-                manager.sortProcesses("network");
-                break;
-            case 5:
-                manager.loadProcesses();
-                break;
-            default:
-                break;
-        }
-        displayProcesses(manager.getProcesses());
-        displayInstructions();
-
-        // Wait for 1.5 seconds
-        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
-        // Check for user input
-        if (std::cin.rdbuf()->in_avail() > 0) {
-            std::getline(std::cin, input);
-            if (!input.empty()) {
-                choice = std::stoi(input);
-                if (choice == 0) {
-                    quit = true;
-                }
-            }
-        }
+    if (flag == "-c") {
+        manager.sortProcesses("cpu");
+    } else if (flag == "-m") {
+        manager.sortProcesses("memory");
+    } else if (flag == "-d") {
+        manager.sortProcesses("disk");
+    } else if (flag == "-n") {
+        manager.sortProcesses("network");
+    } else {
+        std::cerr << "Invalid flag. Use -c, -m, -d, or -n." << std::endl;
+        return 1;
     }
+
+    displayProcesses(manager.getProcesses());
 
     return 0;
 }
