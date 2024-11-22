@@ -19,9 +19,12 @@ bool isNetworkSocket(const std::string& fdPath) {
     return false;
 }
 
-// Constructor initializing the PID, name, and statFilePath
-Process::Process(int pid) : pid(pid), cpuUsage(0.0f), memoryUsage(0.0f),
-                           diskUsage(0.0f), networkUsage(0.0f) {
+/Process::Process() : pid(0), cpuUsage(0.0f), memoryUsage(0.0f), diskUsage(0.0f), networkUsage(0.0f) {
+    name = "Unknown";
+    statFilePath = "";
+}
+
+Process::Process(int pid) : pid(pid), cpuUsage(0.0f), memoryUsage(0.0f), diskUsage(0.0f), networkUsage(0.0f) {
     statFilePath = "/proc/" + std::to_string(pid) + "/stat";
     name = fetchProcessName();
 }
