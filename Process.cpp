@@ -19,7 +19,7 @@ bool isNetworkSocket(const std::string& fdPath) {
     return false;
 }
 
-/Process::Process() : pid(0), cpuUsage(0.0f), memoryUsage(0.0f), diskUsage(0.0f), networkUsage(0.0f) {
+Process::Process() : pid(0), cpuUsage(0.0f), memoryUsage(0.0f), diskUsage(0.0f), networkUsage(0.0f) {
     name = "Unknown";
     statFilePath = "";
 }
