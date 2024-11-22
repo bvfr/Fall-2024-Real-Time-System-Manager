@@ -23,13 +23,11 @@ void ProcessManager::loadProcesses() {
     }
 
     struct dirent* entry;
-    int count = 0; // Counter to track the number of processes loaded
-    while ((entry = readdir(procDir)) != nullptr && count < 10) {
+    while ((entry = readdir(procDir)) != nullptr) {
         if (isdigit(entry->d_name[0])) {
             try {
                 int pid = std::stoi(entry->d_name);
                 processes.emplace_back(pid);
-                count++; // Increment the counter
             } catch (const std::exception& e) {
                 continue;
             }
