@@ -62,4 +62,8 @@ void ProcessManager::sortProcesses(const std::string& criteria) {
                      return a.getNetworkUsage() > b.getNetworkUsage();
                  });
     }
+    // Limit to top 10 processes
+    if (processes.size() > 10) {
+        processes.resize(10);
+    }
 }
