@@ -70,7 +70,30 @@ float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
     }
 }
 
+void Disk::printStats() {
+    const std::string diskName = "sda";  // Set this to your disk (e.g., "sda")
+    const int intervalMs = 1000;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
+    std::cout << "Disk Device: ";
+    printDiskDevice();
 
+    while (running) {
+        // Clear the screen (optional, if you want to refresh output each time)
+        std::cout << "\033[2J\033[1;1H";  // ANSI escape code to clear screen
+
+        float utilization = getIOUtilization(diskName, intervalMs);
+        if (utilization >= 0) {
+            std::cout << "Disk I/O Utilization (" << diskName << "): " << utilization << "%\n";
+        }
+        std::cout << "Disk Active Time: " << getActiveTime() << " sec\n";
+        std::cout << "Disk Capacity: " << getCapacity() << " GB\n";
+        std::cout << "Used Space: " << getUsedSpace() << " GB\n";
+        std::cout << "Free Space: " << getFreeSpace() << " GB\n";
+        std::cout << "Response Time: " << getResponseTime() << " ms\n";
+
+        // Wait for 1 second before the next update
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
 
 std::string findDiskDevice() {
     for (const auto& entry : fs::directory_iterator("/dev")) {
@@ -85,22 +108,6 @@ std::string findDiskDevice() {
 
 Disk::Disk() {
     devicePath = findDiskDevice();
-}
-
-void Disk::printStats() {
-    const std::string diskName = "sda";  // Set this to your disk (e.g., "sda")
-    const int intervalMs = 1000;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
-    std::cout << "Disk Device: ";
-    printDiskDevice();
-    float utilization = getIOUtilization(diskName, intervalMs);
-        if (utilization >= 0) {
-            std::cout << "Disk I/O Utilization (" << diskName << "): " << utilization << "%\n";
-        }
-    std::cout << "Disk Active Time: " << getActiveTime() << " sec\n";
-    std::cout << "Disk Capacity: " << getCapacity() << " GB\n";
-    std::cout << "Used Space: " << getUsedSpace() << " GB\n";
-    std::cout << "Free Space: " << getFreeSpace() << " GB\n";
-    std::cout << "Response Time: " << getResponseTime() << " ms\n";
 }
 
 void Disk::printDiskDevice() {
