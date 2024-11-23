@@ -84,7 +84,7 @@ std::string findDiskDevice() {
 }
 
 Disk::Disk() {
-	devicePath = findDiskDevice();
+    devicePath = findDiskDevice();
 }
 
 void Disk::printStats() {
@@ -254,25 +254,3 @@ float Disk::getResponseTime() {
     std::chrono::duration<float, std::milli> responseTime = end - start;
     return responseTime.count();  // Response time in milliseconds
 }
-
-
-int main() {
-    Disk disk;
-    std::cout << "System Resource Analyzer\n";
-    disk.printDiskDevice();
-
-    // Continuously display disk I/O utilization every second
-    while (running) {
-        // Clear the screen (optional, if you want to refresh output each time)
-        std::cout << "\033[2J\033[1;1H";  // ANSI escape code to clear screen
-
-        // Print disk stats
-        disk.printStats();
-
-        // Wait for 1 second
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    return 0;
-}
-
