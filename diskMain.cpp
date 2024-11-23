@@ -10,19 +10,13 @@
 #include <csignal>
 namespace fs = std::filesystem;
 
-std::atomic<bool> running(true);  // Global flag to control the loop
+extern std::atomic<bool> running;  // Declare as extern if defined elsewhere
 
-// Signal handler function to set the flag when a signal is received (e.g., Ctrl+C)
-void signalHandler(int signal) {
-    if (signal == SIGINT) {
-        std::cout << "\nProgram interrupted. Exiting...\n";
-        running = false;  // Set flag to false to exit the loop
-    }
-}
+// extern void signalHandler(int signal); // Declare as extern if defined elsewhere
 
 int main() {
     // Register signal handler for SIGINT (Ctrl+C)
-    std::signal(SIGINT, signalHandler);
+    // std::signal(SIGINT, signalHandler);
 
     std::cout << "System Resource Analyzer\n";
 
