@@ -94,7 +94,7 @@ void Disk::printStats() {
         std::cout << "Response Time: " << getResponseTime() << " ms\n";
 
         // Wait for 1 second before the next update
-        std::this_thread::sleep_for(std::chrono::seconds(0.5));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
