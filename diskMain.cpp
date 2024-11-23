@@ -1,17 +1,14 @@
-//#include "Process.h"        // Ensure Process.h is available
 #include "disk.h"
 #include <iostream>
-#include <filesystem>       // For std::filesystem
-#include <vector>           // For std::vector
-#include <algorithm>        // For std::all_of
-#include <fstream>          // For std::ifstream
+#include <filesystem>
+#include <vector>
+#include <algorithm>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <atomic>
 #include <csignal>
 namespace fs = std::filesystem;
-
-
 
 std::atomic<bool> running(true);  // Global flag to control the loop
 
@@ -24,11 +21,10 @@ void signalHandler(int signal) {
 }
 
 int main() {
-// Register signal handler for SIGINT (Ctrl+C)
-  //  std::signal(SIGINT, signalHandler);
-    
+    // Register signal handler for SIGINT (Ctrl+C)
+    std::signal(SIGINT, signalHandler);
+
     std::cout << "System Resource Analyzer\n";
-//    Disk analysis
 
     Disk disk;
     disk.printDiskDevice();
@@ -48,44 +44,6 @@ int main() {
     }
 
     std::cout << "Program ended.\n";
- 
-  /* 
-    std::vector<Process> processes;
-    int count = 0;
-
-    // Loop through the /proc directory to find processes
-    for (const auto& entry : fs::directory_iterator("/proc")) {
-        // Each PID directory in /proc is a process
-        if (entry.is_directory()) {
-            std::string dirName = entry.path().filename().string();
-
-            // Check if the directory name is a number (PID)
-            if (std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
-                int pid = std::stoi(dirName);
-
-                // Retrieve the process name from /proc/[pid]/comm
-                std::ifstream commFile("/proc/" + dirName + "/comm");
-                std::string processName;
-                if (commFile.is_open()) {
-                    std::getline(commFile, processName);
-                    commFile.close();
-
-                    // Create a Process object and add to vector
-                    processes.emplace_back(pid, processName);
-                    count++;
-
-                    // Stop after collecting 5 processes
-                    if (count >= 5) break;
-                }
-            }
-        }
-    }
-
-    // Display each process’s information
-    for (Process& proc : processes) {
-        proc.display();
-    }
-    */
 
     return 0;
 }
