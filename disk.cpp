@@ -73,12 +73,13 @@ float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
 void Disk::printStats() {
     const std::string diskName = "sda";  // Set this to your disk (e.g., "sda")
     const int intervalMs = 1000;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
-    std::cout << "Disk Device: ";
-    printDiskDevice();
 
     while (running) {
         // Clear the screen (optional, if you want to refresh output each time)
         std::cout << "\033[2J\033[1;1H";  // ANSI escape code to clear screen
+
+        std::cout << "Disk Device: ";
+        printDiskDevice();
 
         float utilization = getIOUtilization(diskName, intervalMs);
         if (utilization >= 0) {
