@@ -1,98 +1,91 @@
+//#include "Process.h"        // Ensure Process.h is available
+#include "disk.h"
 #include <iostream>
+#include <filesystem>       // For std::filesystem
+#include <vector>           // For std::vector
+#include <algorithm>        // For std::all_of
+#include <fstream>          // For std::ifstream
 #include <string>
-#include <vector>
-#include <algorithm> // For sorting
-#include "ProcessManager.h"
+#include <thread>
+#include <atomic>
+#include <csignal>
+namespace fs = std::filesystem;
 
-void displayProcesses(const std::vector<Process>& processes, int startIndex = 0, int count = 10) {
-    // Display a set number of processes (default is 10) starting from startIndex
-    int endIndex = std::min(startIndex + count, static_cast<int>(processes.size()));
-    for (int i = startIndex; i < endIndex; ++i) {
-        std::cout << "PID: " << processes[i].getPid()
-                  << " | Name: " << processes[i].getProcessName()
-                  << " | CPU: " << processes[i].getCpuUsage()
-                  << "% | Memory: " << processes[i].getMemoryUsage()
-                  << "MB | Disk: " << processes[i].getDiskUsage()
-                  << "MB | Network: " << processes[i].getNetworkUsage()
-                  << "MB" << std::endl;
+
+
+std::atomic<bool> running(true);  // Global flag to control the loop
+
+// Signal handler function to set the flag when a signal is received (e.g., Ctrl+C)
+void signalHandler(int signal) {
+    if (signal == SIGINT) {
+        std::cout << "\nProgram interrupted. Exiting...\n";
+        running = false;  // Set flag to false to exit the loop
     }
 }
 
 int main() {
-    ProcessManager manager;
-    manager.loadProcesses(); // Load the initial list of processes from the system
+// Register signal handler for SIGINT (Ctrl+C)
+  //  std::signal(SIGINT, signalHandler);
+    
+    std::cout << "System Resource Analyzer\n";
+//    Disk analysis
 
-    int choice = -1;
-    bool quit = false;
+    Disk disk;
+    disk.printDiskDevice();
+    
+    std::cout << "Press Ctrl+C to stop the program.\n";
+    
+    // Run until signal is received
+    while (running) {
+        // Clear the screen (optional, if you want to refresh output each time)
+        std::cout << "\033[2J\033[1;1H";  // ANSI escape code to clear screen
 
-    while (!quit) {
-        std::cout << "\nSelect an option:\n";
-        std::cout << "1. Display processes (sorted by CPU usage)\n";
-        std::cout << "2. Display processes (sorted by Memory usage)\n";
-        std::cout << "3. Display processes (sorted by Disk usage)\n";
-        std::cout << "4. Display processes (sorted by Network usage)\n";
-        std::cout << "5. Find process by PID\n";
-        std::cout << "6. Find processes by name\n";
-        std::cout << "0. Quit\n";
-        std::cout << "Choice: ";
-        std::cin >> choice;
+        // Print disk stats
+        disk.printStats();
 
-        switch (choice) {
-            case 1:
-                manager.sortByCpuUsage();
-                displayProcesses(manager.getProcesses());
-                break;
-            case 2:
-                manager.sortByMemoryUsage();
-                displayProcesses(manager.getProcesses());
-                break;
-            case 3:
-                manager.sortByDiskUsage();
-                displayProcesses(manager.getProcesses());
-                break;
-            case 4:
-                manager.sortByNetworkUsage();
-                displayProcesses(manager.getProcesses());
-                break;
-            case 5: {
-                int pid;
-                std::cout << "Enter PID: ";
-                std::cin >> pid;
-                Process* process = manager.findProcessByPid(pid);
-                if (process) {
-                    std::cout << "Process found: PID: " << process->getPid()
-                              << " | Name: " << process->getProcessName()
-                              << " | CPU: " << process->getCpuUsage()
-                              << "% | Memory: " << process->getMemoryUsage()
-                              << "MB | Disk: " << process->getDiskUsage()
-                              << "MB | Network: " << process->getNetworkUsage()
-                              << "MB" << std::endl;
-                } else {
-                    std::cout << "No process found with PID " << pid << std::endl;
+        // Wait for 1 second
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    std::cout << "Program ended.\n";
+ 
+  /* 
+    std::vector<Process> processes;
+    int count = 0;
+
+    // Loop through the /proc directory to find processes
+    for (const auto& entry : fs::directory_iterator("/proc")) {
+        // Each PID directory in /proc is a process
+        if (entry.is_directory()) {
+            std::string dirName = entry.path().filename().string();
+
+            // Check if the directory name is a number (PID)
+            if (std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
+                int pid = std::stoi(dirName);
+
+                // Retrieve the process name from /proc/[pid]/comm
+                std::ifstream commFile("/proc/" + dirName + "/comm");
+                std::string processName;
+                if (commFile.is_open()) {
+                    std::getline(commFile, processName);
+                    commFile.close();
+
+                    // Create a Process object and add to vector
+                    processes.emplace_back(pid, processName);
+                    count++;
+
+                    // Stop after collecting 5 processes
+                    if (count >= 5) break;
                 }
-                break;
             }
-            case 6: {
-                std::string name;
-                std::cout << "Enter process name: ";
-                std::cin >> name;
-                auto processes = manager.findProcessesByName(name);
-                if (!processes.empty()) {
-                    displayProcesses(processes);
-                } else {
-                    std::cout << "No processes found with name " << name << std::endl;
-                }
-                break;
-            }
-            case 0:
-                quit = true;
-                break;
-            default:
-                std::cout << "Invalid option. Please try again." << std::endl;
-                break;
         }
     }
 
+    // Display each process’s information
+    for (Process& proc : processes) {
+        proc.display();
+    }
+    */
+
     return 0;
 }
-
