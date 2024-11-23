@@ -48,7 +48,6 @@ long Disk::getDiskIOTime(const std::string& diskName) {
     }
     throw std::runtime_error("Disk device not found in /proc/diskstats");
 }
-
 float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
     try {
         long io_time_start = getDiskIOTime(diskName);
@@ -63,6 +62,9 @@ float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
 
         // Utilization is the percentage of time the disk was busy in the interval
         float utilization = (static_cast<float>(io_time_delta) / intervalMs) * 100.0f;
+        if (utilization > 100.0f) {
+            utilization = 100.0f;
+        }
         return utilization;
     } catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << "\n";
