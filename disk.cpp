@@ -74,7 +74,7 @@ float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
 
 void Disk::printStats() {
     const std::string diskName = "sda";  // Set this to your disk (e.g., "sda")
-    const int intervalMs = 100;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
+    const int intervalMs = 1000;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
 
     while (running) {
         // Clear the screen (optional, if you want to refresh output each time)
