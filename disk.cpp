@@ -74,7 +74,8 @@ float Disk::getIOUtilization(const std::string& diskName, int intervalMs) {
 
 void Disk::printStats() {
     const std::string diskName = "sda";  // Set this to your disk (e.g., "sda")
-    const int intervalMs = 500;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
+    const int intervalMs = 100;         // Interval in milliseconds (e.g., 1000 ms = 1 second)
+    float lastUtilization = 0.0f;       // Variable to store the last measured utilization
 
     while (running) {
         // Clear the screen (optional, if you want to refresh output each time)
@@ -87,9 +88,12 @@ void Disk::printStats() {
         std::thread utilizationThread([&]() {
             float utilization = getIOUtilization(diskName, intervalMs);
             if (utilization >= 0) {
-                std::cout << "Disk I/O Utilization (" << diskName << "): " << utilization << "%\n";
+                lastUtilization = utilization;  // Update the last measured utilization
             }
         });
+
+        // Display the last measured utilization
+        std::cout << "Disk I/O Utilization (" << diskName << "): " << lastUtilization << "%\n";
 
         std::cout << "Disk Active Time: " << getActiveTime() << " sec\n";
         std::cout << "Disk Capacity: " << getCapacity() << " GB\n";
