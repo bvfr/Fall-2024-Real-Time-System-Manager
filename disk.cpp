@@ -83,10 +83,14 @@ void Disk::printStats() {
         std::cout << "Disk Device: ";
         printDiskDevice();
 
-        float utilization = getIOUtilization(diskName, intervalMs);
-        if (utilization >= 0) {
-            std::cout << "Disk I/O Utilization (" << diskName << "): " << utilization << "%\n";
-        }
+        // Create a thread to run getIOUtilization concurrently
+        std::thread utilizationThread([&]() {
+            float utilization = getIOUtilization(diskName, intervalMs);
+            if (utilization >= 0) {
+                std::cout << "Disk I/O Utilization (" << diskName << "): " << utilization << "%\n";
+            }
+        });
+
         std::cout << "Disk Active Time: " << getActiveTime() << " sec\n";
         std::cout << "Disk Capacity: " << getCapacity() << " GB\n";
         std::cout << "Used Space: " << getUsedSpace() << " GB\n";
@@ -95,6 +99,9 @@ void Disk::printStats() {
 
         // Wait for 1 second before the next update
         std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Join the thread to ensure completion
+        utilizationThread.join();
     }
 }
 
