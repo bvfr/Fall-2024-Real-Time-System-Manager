@@ -30,15 +30,14 @@ Process::Process(int pid) : pid(pid), cpuUsage(0.0f), memoryUsage(0.0f), diskUsa
     name = fetchProcessName();
 }
 
-// Display process information
 void Process::display() const {
     std::cout << "PID: " << pid
               << " | Name: " << name
-              << " | CPU: " << cpuUsage
-              << "% | Memory: " << memoryUsage
-              << "% | Disk: " << diskUsage
-              << "% | Network: " << networkUsage
-              << "%" << std::endl;
+              << " | CPU: " << cpuUsage << "%"
+              << " | Memory: " << memoryUsage << " MB"
+              << " | Disk: " << diskUsage << " MB/s"
+              << " | Network: " << networkUsage << " Mb/s"
+              << std::endl;
 }
 
 // Fetch process name based on PID
@@ -119,7 +118,7 @@ float Process::fetchTotalMemory() const {
     return totalMemoryKB / 1024.0f; // Convert to MB
 }
 
-// Fetch memory usage from /proc/[pid]/status
+// Fetch memory usage from /proc/[pid]/status in MB
 float Process::fetchMemoryUsage() const {
     std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
     if (!statusFile) {
@@ -138,8 +137,7 @@ float Process::fetchMemoryUsage() const {
         }
     }
 
-    float totalMemory = fetchTotalMemory();
-    return (memoryUsageKB / 1024.0f) / totalMemory * 100.0f; // Convert to percentage
+    return memoryUsageKB / 1024.0f; // Convert to MB
 }
 
 // Fetch total system disk usage
@@ -151,7 +149,7 @@ float Process::fetchTotalDisk() const {
     return (stat.f_blocks * stat.f_frsize) / (1024.0f * 1024.0f); // Return total disk space in MB
 }
 
-// Fetch disk usage from /proc/[pid]/io
+// Fetch disk usage from /proc/[pid]/io in MB/s
 float Process::fetchDiskUsage() const {
     std::ifstream ioFile("/proc/" + std::to_string(pid) + "/io");
     if (!ioFile) {
@@ -175,8 +173,7 @@ float Process::fetchDiskUsage() const {
     }
 
     long totalBytes = readBytes + writeBytes;
-    float totalDisk = fetchTotalDisk();
-    return (static_cast<float>(totalBytes) / (1024.0f * 1024.0f)) / totalDisk * 100.0f; // Convert to percentage
+    return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Convert to MB
 }
 
 // Fetch total system network usage
@@ -204,7 +201,7 @@ float Process::fetchTotalNetwork() const {
     return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Return total network usage in MB
 }
 
-// Fetch network usage from file descriptors
+// Fetch network usage from file descriptors in Mb/s
 float Process::fetchNetworkUsage() const {
     std::string fdDirPath = "/proc/" + std::to_string(pid) + "/fd/";
     DIR* dir = opendir(fdDirPath.c_str());
@@ -225,9 +222,8 @@ float Process::fetchNetworkUsage() const {
     closedir(dir);
     const float estimatedUsagePerSocket = 0.5f; // Assume each socket ~0.5MB/sec usage
     float totalNetwork = fetchTotalNetwork();
-    float networkUsage = (socketCount * estimatedUsagePerSocket) / totalNetwork * 100.0f; // Convert to percentage
-
-    return networkUsage > 100.0f ? 100.0f : networkUsage; // Cap at 100%
+    float networkUsageMBps = (socketCount * estimatedUsagePerSocket); // MB/s
+    return networkUsageMBps * 8; // Convert to Mb/s
 }
 
 // Accessor methods
