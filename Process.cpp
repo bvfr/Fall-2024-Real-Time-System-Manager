@@ -225,7 +225,9 @@ float Process::fetchNetworkUsage() const {
     closedir(dir);
     const float estimatedUsagePerSocket = 0.5f; // Assume each socket ~0.5MB/sec usage
     float totalNetwork = fetchTotalNetwork();
-    return (socketCount * estimatedUsagePerSocket) / totalNetwork * 100.0f; // Convert to percentage
+    float networkUsage = (socketCount * estimatedUsagePerSocket) / totalNetwork * 100.0f; // Convert to percentage
+
+    return networkUsage > 100.0f ? 100.0f : networkUsage; // Cap at 100%
 }
 
 // Accessor methods
