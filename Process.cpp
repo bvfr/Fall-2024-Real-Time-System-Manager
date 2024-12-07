@@ -167,7 +167,6 @@ float Process::fetchNetworkUsage() const {
 
     closedir(dir);
     const float estimatedUsagePerSocket = 0.5f; // Assume each socket ~0.5MB/sec usage
-    float totalNetwork = fetchTotalNetwork();
     float networkUsageMBps = (socketCount * estimatedUsagePerSocket); // MB/s
     return networkUsageMBps * 8; // Convert to Mb/s
 }
