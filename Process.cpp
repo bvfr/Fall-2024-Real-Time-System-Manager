@@ -96,28 +96,6 @@ float Process::fetchCpuUsage() const {
     return 0.0f;
 }
 
-// Fetch total system memory
-float Process::fetchTotalMemory() const {
-    std::ifstream meminfoFile("/proc/meminfo");
-    if (!meminfoFile) {
-        return 1.0f; // Avoid division by zero
-    }
-
-    std::string line;
-    float totalMemoryKB = 0.0f;
-
-    while (std::getline(meminfoFile, line)) {
-        if (line.find("MemTotal:") == 0) {
-            std::istringstream iss(line);
-            std::string key;
-            iss >> key >> totalMemoryKB;
-            break;
-        }
-    }
-
-    return totalMemoryKB / 1024.0f; // Convert to MB
-}
-
 // Fetch memory usage from /proc/[pid]/status in MB
 float Process::fetchMemoryUsage() const {
     std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
@@ -140,14 +118,6 @@ float Process::fetchMemoryUsage() const {
     return memoryUsageKB / 1024.0f; // Convert to MB
 }
 
-// Fetch total system disk usage
-float Process::fetchTotalDisk() const {
-    struct statvfs stat;
-    if (statvfs("/", &stat) != 0) {
-        return 1.0f; // Avoid division by zero
-    }
-    return (stat.f_blocks * stat.f_frsize) / (1024.0f * 1024.0f); // Return total disk space in MB
-}
 
 // Fetch disk usage from /proc/[pid]/io in MB/s
 float Process::fetchDiskUsage() const {
@@ -176,30 +146,6 @@ float Process::fetchDiskUsage() const {
     return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Convert to MB
 }
 
-// Fetch total system network usage
-float Process::fetchTotalNetwork() const {
-    std::ifstream netFile("/proc/net/dev");
-    if (!netFile) {
-        return 1.0f; // Avoid division by zero
-    }
-
-    std::string line;
-    long totalBytes = 0;
-
-    // Skip the first two lines
-    std::getline(netFile, line);
-    std::getline(netFile, line);
-
-    while (std::getline(netFile, line)) {
-        std::istringstream iss(line);
-        std::string iface;
-        long rxBytes, txBytes;
-        iss >> iface >> rxBytes;
-        for (int i = 0; i < 8; ++i) iss >> txBytes;
-        totalBytes += rxBytes + txBytes;
-    }
-    return static_cast<float>(totalBytes) / (1024.0f * 1024.0f); // Return total network usage in MB
-}
 
 // Fetch network usage from file descriptors in Mb/s
 float Process::fetchNetworkUsage() const {
